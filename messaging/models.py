@@ -16,16 +16,21 @@ class Post(models.Model):
     """
     body = models.CharField(max_length=1024)
 
+    def __str__(self):
+        return self.body[:20]
+
 
 class Thread(Post):
     board = models.ForeignKey(Board, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return self.body[:20]
 
 
 class Reply(Post):
     origin = models.ForeignKey(Thread, on_delete=models.CASCADE)
 
+
+class Attachment(models.Model):
+    file = models.FileField(upload_to='attachments/')
+    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+
     def __str__(self):
-        return self.body[:20]
+        return self.file.name
