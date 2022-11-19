@@ -18,4 +18,6 @@ from messaging import views
 
 urlpatterns = [
     path('', views.home, name='home'),
+    path('boards/<int:board_id>', views.board_view, name='board'),
+    path('threads/<int:thread_id>', views.thread_view, name='thread'),
 ]
