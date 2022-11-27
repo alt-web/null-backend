@@ -9,6 +9,14 @@ class Board(models.Model):
     def __str__(self):
         return f'/{self.code}/ - {self.name}'
 
+    def as_dict(self):
+        return {
+            'id': self.id,
+            'code': self.code,
+            'name': self.name,
+            'description': self.description,
+        }
+
 
 class Post(models.Model):
     """
@@ -18,6 +26,12 @@ class Post(models.Model):
 
     def __str__(self):
         return self.body[:20]
+
+    def as_dict(self):
+        return {
+            'id': self.id,
+            'body': self.body,
+        }
 
 
 class Thread(Post):
@@ -34,3 +48,8 @@ class Attachment(models.Model):
 
     def __str__(self):
         return self.file.name
+    
+    def as_dict(self):
+        return {
+            'filename': self.file.name,
+        }
