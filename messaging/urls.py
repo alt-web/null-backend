@@ -15,9 +15,12 @@ Including another URLconf
 """
 from django.urls import path
 from messaging import views
+from rest_framework.urlpatterns import format_suffix_patterns
 
 urlpatterns = [
-    path('boards', views.home, name='home'),
-    path('boards/<int:board_id>', views.board_view, name='board'),
-    path('threads/<int:thread_id>', views.thread_view, name='thread'),
+    path('boards/', views.BoardList.as_view()),
+    path('threads/', views.ThreadList.as_view()),
+    path('replies/', views.ReplyList.as_view()),
 ]
+
+urlpatterns = format_suffix_patterns(urlpatterns)
