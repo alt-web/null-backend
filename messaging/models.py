@@ -21,21 +21,16 @@ class Post(models.Model):
 
 
 class Thread(Post):
-    board = models.ForeignKey(Board, on_delete=models.CASCADE)
+    board = models.ForeignKey(Board, related_name='threads', on_delete=models.CASCADE)
 
 
 class Reply(Post):
-    origin = models.ForeignKey(Thread, on_delete=models.CASCADE)
+    origin = models.ForeignKey(Thread, related_name='replies', on_delete=models.CASCADE)
 
 
 class Attachment(models.Model):
-    file = models.FileField(upload_to='attachments/')
-    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    file = models.FileField()
+    post = models.ForeignKey(Post, related_name='attachments', on_delete=models.CASCADE)
 
     def __str__(self):
         return self.file.name
-    
-    def as_dict(self):
-        return {
-            'filename': self.file.name,
-        }

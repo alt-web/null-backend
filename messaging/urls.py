@@ -18,9 +18,12 @@ from messaging import views
 from rest_framework.urlpatterns import format_suffix_patterns
 
 urlpatterns = [
+    # Boards
     path('boards/', views.BoardList.as_view()),
+    path('boards/<int:pk>/', views.BoardDetail.as_view()),
+    # Threads
     path('threads/', views.ThreadList.as_view()),
-    path('replies/', views.ReplyList.as_view()),
+    path('threads/<int:pk>/', views.ThreadDetail.as_view()),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)
