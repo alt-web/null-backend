@@ -26,5 +26,11 @@ class ThreadDetail(generics.RetrieveUpdateDestroyAPIView):
 
 
 class ReplyList(generics.ListCreateAPIView):
+    permission_classes = [ReadOnlyOrCreate]
+    queryset = Reply.objects.all()
+    serializer_class = ReplySerializer
+
+
+class ReplyDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Reply.objects.all()
     serializer_class = ReplySerializer

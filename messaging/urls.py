@@ -24,6 +24,9 @@ urlpatterns = [
     # Threads
     path('threads/', views.ThreadList.as_view()),
     path('threads/<int:pk>/', views.ThreadDetail.as_view()),
+    # Replies
+    path('replies/', views.ReplyList.as_view()),
+    path('replies/<int:pk>/', views.ReplyDetail.as_view()),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)
