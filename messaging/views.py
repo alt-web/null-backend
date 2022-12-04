@@ -1,7 +1,7 @@
 from rest_framework import generics
 from messaging.models import Board, Thread, Reply, Attachment
 from messaging.serializers import BoardSerializer, BoardDetailedSerializer, ThreadSerializer, ThreadDetailedSerializer, ReplySerializer
-from messaging.permissions import ReadOnlyOrCreate
+from messaging.permissions import CreateOnly
 
 
 class BoardList(generics.ListCreateAPIView):
@@ -15,7 +15,7 @@ class BoardDetail(generics.RetrieveUpdateDestroyAPIView):
 
 
 class ThreadList(generics.ListCreateAPIView):
-    permission_classes = [ReadOnlyOrCreate]
+    permission_classes = [CreateOnly]
     queryset = Thread.objects.all()
     serializer_class = ThreadSerializer
 
@@ -26,7 +26,7 @@ class ThreadDetail(generics.RetrieveUpdateDestroyAPIView):
 
 
 class ReplyList(generics.ListCreateAPIView):
-    permission_classes = [ReadOnlyOrCreate]
+    permission_classes = [CreateOnly]
     queryset = Reply.objects.all()
     serializer_class = ReplySerializer
 

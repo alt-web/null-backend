@@ -17,6 +17,12 @@ class ReplyTestCase(TestCase):
         # Client
         self.c = Client()
 
+    def test_get_list_of_replies(self):
+        """ Disable getting an unfiltered list of replies """
+        response = self.c.get('/replies/')
+
+        self.assertEqual(response.status_code, 403)
+    
     def test_get_reply(self):
         """ Anyone can get information about reply """
         response = self.c.get(f'/replies/{self.r1.id}/')
