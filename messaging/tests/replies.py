@@ -18,10 +18,10 @@ class ReplyTestCase(TestCase):
         self.c = Client()
 
     def test_get_list_of_replies(self):
-        """ Disable getting an unfiltered list of replies """
+        """ Users can't request a list of all replies """
         response = self.c.get('/replies/')
 
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 405)
     
     def test_get_reply(self):
         """ Anyone can get information about reply """

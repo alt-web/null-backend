@@ -18,10 +18,10 @@ class ThreadTestCase(TestCase):
         self.c = Client()
 
     def test_get_list_of_threads(self):
-        """ Disable getting an unfiltered list of threads """
+        """ Users can't request a list of all threads """
         response = self.c.get('/threads/')
 
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 405)
 
     def test_get_thread(self):
         """ Anyone can get information about thread and replies """
