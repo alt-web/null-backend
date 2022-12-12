@@ -15,6 +15,7 @@ class BoardList(generics.ListAPIView):
 class BoardDetail(generics.RetrieveAPIView):
     queryset = Board.objects.all()
     serializer_class = BoardDetailedSerializer
+    lookup_field = 'code'
 
 
 ## Threads

@@ -25,7 +25,7 @@ class BoardTestCase(TestCase):
 
     def test_get_board(self):
         """ Anyone can get information about board and related threads """
-        response = self.c.get(f'/boards/{self.b1.id}/')
+        response = self.c.get(f'/boards/{self.b1.code}/')
         requested_board = json.loads(response.content)
 
         self.assertEqual(response.status_code, 200)
