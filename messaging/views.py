@@ -1,7 +1,7 @@
 from rest_framework import generics
 from rest_framework.permissions import AllowAny
 from messaging.models import Board, Thread, Reply, Attachment
-from messaging.serializers import BoardSerializer, BoardDetailedSerializer, ThreadSerializer, ThreadDetailedSerializer, ReplySerializer
+from messaging.serializers import BoardSerializer, BoardDetailedSerializer, ThreadSerializer, ThreadDetailedSerializer, ReplySerializer, AttachmentSerializer
 
 
 ## Boards
@@ -43,3 +43,11 @@ class ReplyList(generics.CreateAPIView):
 class ReplyDetail(generics.RetrieveAPIView):
     queryset = Reply.objects.all()
     serializer_class = ReplySerializer
+
+
+## Attachments
+##
+
+class AttachmentUploader(generics.CreateAPIView):
+    serializer_class = AttachmentSerializer
+    queryset = Attachment.objects.all()
