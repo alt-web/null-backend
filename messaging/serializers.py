@@ -13,25 +13,26 @@ class AttachmentSerializer(serializers.ModelSerializer):
         fields = ('id', 'file', 'cid', 'name', 'mimetype', 'size', 'width', 'height', 'length')
         read_only_fields = ['cid', 'name', 'mimetype', 'size', 'width', 'height', 'length']
     
-    def save(self, **kwargs):
+    def create(self, validated_data):
         # Upload file to ipfs
-        file = self.validated_data.pop('file')
+        file = validated_data.pop('file')
         res = requests.post('http://localhost:5001/api/v0/add?cid-version=1', files={'django': file})
         content = json.loads(res.content)
        
         # Save data from ipfs
-        self.validated_data['cid'] = content['Hash']
-        self.validated_data['name'] = content['Name']
+        validated_data['cid'] = content['Hash']
+        validated_data['name'] = content['Name']
 
         # Save file size
-        self.validated_data['size'] = file.size
+        validated_data['size'] = file.size
 
         # Get mime type
         file.seek(0)
         mime_type = magic.from_buffer(file.read(2048), mime=True)
-        self.validated_data['mimetype'] = mime_type
+        validated_data['mimetype'] = mime_type
 
-        instance = Attachment.objects.create(**self.validated_data)
+        instance = Attachment(**validated_data)
+        instance.save()
         return instance
 
 

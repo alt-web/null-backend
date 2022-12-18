@@ -52,3 +52,4 @@ class ReplyDetail(generics.RetrieveAPIView):
 class AttachmentUploader(generics.CreateAPIView):
     serializer_class = AttachmentSerializer
     queryset = Attachment.objects.all()
+    permission_classes = [AllowAny]
