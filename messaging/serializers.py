@@ -50,7 +50,7 @@ class ReplySerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Reply
-        fields = ('id', 'body', 'origin', 'attachments', 'aid1', 'aid2', 'aid3', 'aid4')
+        fields = ('id', 'body', 'created_at', 'origin', 'attachments', 'aid1', 'aid2', 'aid3', 'aid4')
 
     def create(self, validated_data):
         # Save attachment ids
@@ -75,7 +75,7 @@ class ThreadSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Thread
-        fields = ('id', 'body', 'board', 'aid1', 'aid2', 'aid3', 'aid4', 'attachments')
+        fields = ('id', 'body', 'created_at', 'board', 'aid1', 'aid2', 'aid3', 'aid4', 'attachments')
 
     def create(self, validated_data):
         # Save attachments
@@ -107,7 +107,7 @@ class ThreadDetailedSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Thread
-        fields = ('id', 'body', 'board', 'replies', 'attachments')
+        fields = ('id', 'body', 'created_at', 'board', 'replies', 'attachments')
 
 
 class BoardSerializer(serializers.ModelSerializer):
