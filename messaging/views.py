@@ -1,7 +1,12 @@
 from rest_framework import generics
 from rest_framework.permissions import AllowAny
 from messaging.models import Board, Thread, Reply, Attachment
-from messaging.serializers import BoardSerializer, BoardDetailedSerializer, ThreadSerializer, ThreadDetailedSerializer, ReplySerializer, AttachmentSerializer
+from messaging.serializers import (
+        BoardSerializer, BoardDetailedSerializer,
+        ThreadSerializer, ThreadDetailedSerializer,
+        ReplySerializer,
+        AttachmentSerializer
+)
 
 
 ## Boards

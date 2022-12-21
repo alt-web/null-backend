@@ -3,6 +3,7 @@ import magic
 import json
 from rest_framework import serializers
 from messaging.models import Board, Thread, Reply, Attachment
+from .utils import get_ipfs_url
 
 
 class AttachmentSerializer(serializers.ModelSerializer):
@@ -16,7 +17,7 @@ class AttachmentSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         # Upload file to ipfs
         file = validated_data.pop('file')
-        res = requests.post('http://localhost:5001/api/v0/add?cid-version=1', files={'django': file})
+        res = requests.post(get_ipfs_url('/api/v0/add?cid-version=1'), files={'django': file})
         content = json.loads(res.content)
        
         # Save data from ipfs
