@@ -1,5 +1,7 @@
 FROM python:3.11-alpine
 
+RUN apk add libmagic
+
 WORKDIR /app
 
 COPY requirements.txt .
