@@ -22,7 +22,7 @@ class ReplyTestCase(TestCase):
         response = self.c.get('/replies/')
 
         self.assertEqual(response.status_code, 405)
-    
+
     def test_get_reply(self):
         """ Anyone can get information about reply """
         response = self.c.get(f'/replies/{self.r1.id}/')

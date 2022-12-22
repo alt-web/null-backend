@@ -9,6 +9,7 @@ class Board(models.Model):
     def __str__(self):
         return f'/{self.code}/ - {self.name}'
 
+
 class Attachment(models.Model):
     # Ipfs CID
     cid = models.CharField(max_length=59)
@@ -46,8 +47,16 @@ class Post(models.Model):
 
 
 class Thread(Post):
-    board = models.ForeignKey(Board, related_name='threads', on_delete=models.CASCADE)
+    board = models.ForeignKey(
+            Board,
+            related_name='threads',
+            on_delete=models.CASCADE
+    )
 
 
 class Reply(Post):
-    origin = models.ForeignKey(Thread, related_name='replies', on_delete=models.CASCADE)
+    origin = models.ForeignKey(
+            Thread,
+            related_name='replies',
+            on_delete=models.CASCADE
+    )
