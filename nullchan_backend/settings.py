@@ -11,10 +11,11 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 from pathlib import Path
 import os
 
+
 def get_secret_key():
     is_prod = os.environ.get('DJANGO_PRODUCTION', False)
     key = os.environ.get('DJANGO_SECRET_KEY', False)
-    
+
     if is_prod and not key:
         # Require secret key in production
         raise KeyError("DJANGO_SECRET_KEY was not found")
@@ -24,8 +25,10 @@ def get_secret_key():
     # Return default secret key for dev environment
     return 'django-insecure-52#qaqkznzx^*r!))c+x%ku(cc@j(ptbz6&nm$(9(5$^zoyya^'
 
+
 def is_debug_mode_enabled():
     return not bool(os.environ.get('DJANGO_PRODUCTION', False))
+
 
 def get_database():
     if is_debug_mode_enabled():
@@ -44,6 +47,7 @@ def get_database():
             'PASSWORD': os.environ['DJANGO_DB_PASSWORD'],
         }
     }
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -77,6 +81,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',

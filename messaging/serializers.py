@@ -11,15 +11,20 @@ class AttachmentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Attachment
-        fields = ('id', 'file', 'cid', 'name', 'mimetype', 'size', 'width', 'height', 'length')
-        read_only_fields = ['cid', 'name', 'mimetype', 'size', 'width', 'height', 'length']
-    
+        fields = ('id', 'file', 'cid', 'name', 'mimetype', 'size',
+                  'width', 'height', 'length')
+        read_only_fields = ['cid', 'name', 'mimetype', 'size',
+                            'width', 'height', 'length']
+
     def create(self, validated_data):
         # Upload file to ipfs
         file = validated_data.pop('file')
-        res = requests.post(get_ipfs_url('/api/v0/add?cid-version=1'), files={'django': file})
+        res = requests.post(
+                get_ipfs_url('/api/v0/add?cid-version=1'),
+                files={'django': file}
+        )
         content = json.loads(res.content)
-       
+
         # Save data from ipfs
         validated_data['cid'] = content['Hash']
         validated_data['name'] = content['Name']
@@ -46,12 +51,13 @@ class ReplySerializer(serializers.ModelSerializer):
     aid2 = serializers.IntegerField(write_only=True, required=False)
     aid3 = serializers.IntegerField(write_only=True, required=False)
     aid4 = serializers.IntegerField(write_only=True, required=False)
-    
+
     attachments = AttachmentSerializer(many=True, read_only=True)
-    
+
     class Meta:
         model = Reply
-        fields = ('id', 'body', 'created_at', 'origin', 'attachments', 'aid1', 'aid2', 'aid3', 'aid4')
+        fields = ('id', 'body', 'created_at', 'origin', 'attachments',
+                  'aid1', 'aid2', 'aid3', 'aid4')
 
     def create(self, validated_data):
         # Save attachment ids
@@ -71,12 +77,13 @@ class ThreadSerializer(serializers.ModelSerializer):
     aid2 = serializers.IntegerField(write_only=True, required=False)
     aid3 = serializers.IntegerField(write_only=True, required=False)
     aid4 = serializers.IntegerField(write_only=True, required=False)
-    
+
     attachments = AttachmentSerializer(many=True, read_only=True)
 
     class Meta:
         model = Thread
-        fields = ('id', 'body', 'created_at', 'board', 'aid1', 'aid2', 'aid3', 'aid4', 'attachments')
+        fields = ('id', 'body', 'created_at', 'board',
+                  'aid1', 'aid2', 'aid3', 'aid4', 'attachments')
 
     def create(self, validated_data):
         # Save attachments
@@ -108,7 +115,8 @@ class ThreadDetailedSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Thread
-        fields = ('id', 'body', 'created_at', 'board', 'replies', 'attachments')
+        fields = ('id', 'body', 'created_at',
+                  'board', 'replies', 'attachments')
 
 
 class BoardSerializer(serializers.ModelSerializer):

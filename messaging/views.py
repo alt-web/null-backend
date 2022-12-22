@@ -9,7 +9,7 @@ from messaging.serializers import (
 )
 
 
-## Boards
+# Boards
 ##
 
 class BoardList(generics.ListAPIView):
@@ -23,7 +23,7 @@ class BoardDetail(generics.RetrieveAPIView):
     lookup_field = 'code'
 
 
-## Threads
+# Threads
 ##
 
 class ThreadList(generics.CreateAPIView):
@@ -37,7 +37,7 @@ class ThreadDetail(generics.RetrieveAPIView):
     serializer_class = ThreadDetailedSerializer
 
 
-## Replies
+# Replies
 ##
 
 class ReplyList(generics.CreateAPIView):
@@ -51,7 +51,7 @@ class ReplyDetail(generics.RetrieveAPIView):
     serializer_class = ReplySerializer
 
 
-## Attachments
+# Attachments
 ##
 
 class AttachmentUploader(generics.CreateAPIView):
