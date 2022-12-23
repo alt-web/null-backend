@@ -1,6 +1,7 @@
 import requests
 import magic
 import json
+from typing import Any
 from rest_framework import serializers
 from messaging.models import Board, Thread, Reply, Attachment
 from .utils import get_ipfs_url
@@ -16,7 +17,7 @@ class AttachmentSerializer(serializers.ModelSerializer):
         read_only_fields = ['cid', 'name', 'mimetype', 'size',
                             'width', 'height', 'length']
 
-    def create(self, validated_data):
+    def create(self, validated_data: dict[str, Any]) -> Attachment:
         # Upload file to ipfs
         file = validated_data.pop('file')
         res = requests.post(
@@ -59,7 +60,7 @@ class ReplySerializer(serializers.ModelSerializer):
         fields = ('id', 'body', 'created_at', 'origin', 'attachments',
                   'aid1', 'aid2', 'aid3', 'aid4')
 
-    def create(self, validated_data):
+    def create(self, validated_data: dict[str, Any]) -> Reply:
         # Save attachment ids
         attachments = get_attachments(validated_data)
         # Create a reply
@@ -85,7 +86,7 @@ class ThreadSerializer(serializers.ModelSerializer):
         fields = ('id', 'body', 'created_at', 'board',
                   'aid1', 'aid2', 'aid3', 'aid4', 'attachments')
 
-    def create(self, validated_data):
+    def create(self, validated_data: dict[str, Any]) -> Thread:
         # Save attachments
         attachments = get_attachments(validated_data)
         # Create a thread
@@ -97,7 +98,7 @@ class ThreadSerializer(serializers.ModelSerializer):
         return thread
 
 
-def get_attachments(validated_data):
+def get_attachments(validated_data: dict[str, Any]) -> list[int]:
     attachment_ids = []
     for i in range(1, 5):
         key = f'aid{i}'

@@ -3,7 +3,7 @@ import os
 import urllib.parse
 
 
-def get_ipfs_url(path):
+def get_ipfs_url(path: str) -> str:
     if settings.DEBUG:
         return urllib.parse.urljoin('http://localhost:5001', path)
 
