@@ -9,7 +9,7 @@ class ReplyTestCase(TestCase):
         self.b1 = Board(code='b', name='random', description='desc')
         self.b1.save()
         # Threads
-        self.t1 = Thread(body='test thread', board=self.b1)
+        self.t1 = Thread(board=self.b1)
         self.t1.save()
         # Replies
         self.r1 = Reply(body='test reply', origin=self.t1)

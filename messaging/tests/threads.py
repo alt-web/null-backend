@@ -9,10 +9,10 @@ class ThreadTestCase(TestCase):
         self.b1 = Board(code='b', name='random', description='desc')
         self.b1.save()
         # Threads
-        self.t1 = Thread(body='test thread', board=self.b1)
+        self.t1 = Thread(board=self.b1)
         self.t1.save()
         # Replies
-        self.r1 = Reply(body='test reply', origin=self.t1)
+        self.r1 = Reply(origin=self.t1)
         self.r1.save()
         # Client
         self.c = Client()
@@ -29,13 +29,13 @@ class ThreadTestCase(TestCase):
         requested_thread = json.loads(response.content)
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(requested_thread['body'], self.t1.body)
+        self.assertEqual(requested_thread['board'], self.b1.id)
         self.assertEqual(len(requested_thread['replies']), 1)
 
     def test_unauthorized_post(self) -> None:
         """ Random visitors can create new threads """
         response = self.c.post('/threads/', {
-            'body': 'new thread',
+            'body': 'Test thread',
             'board': self.b1.id,
         })
 
@@ -44,7 +44,6 @@ class ThreadTestCase(TestCase):
     def test_unauthorized_put(self) -> None:
         """ Random visitors can't modify threads """
         response = self.c.put(f'/threads/{self.t1.id}/', {
-            'body': 'new body',
             'board': self.b1.id
         })
 

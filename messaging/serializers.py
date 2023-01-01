@@ -75,6 +75,7 @@ class ReplySerializer(serializers.ModelSerializer):
 
 class ThreadSerializer(serializers.ModelSerializer):
     # Attachment ids
+    body = serializers.CharField(write_only=True, required=True)
     aid1 = serializers.IntegerField(write_only=True, required=False)
     aid2 = serializers.IntegerField(write_only=True, required=False)
     aid3 = serializers.IntegerField(write_only=True, required=False)
@@ -84,18 +85,25 @@ class ThreadSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Thread
-        fields = ('id', 'body', 'created_at', 'board',
+        fields = ('id', 'body', 'board',
                   'aid1', 'aid2', 'aid3', 'aid4', 'attachments')
 
     def create(self, validated_data: dict[str, Any]) -> Thread:
-        # Save attachments
+        """
+        Extract everything that belongs to the reply model,
+        create the tread and thren create the first reply.
+        """
+        body = validated_data.pop('body')
         attachments = get_attachments(validated_data)
         # Create a thread
         thread = Thread(**validated_data)
         thread.save()
+        # Create the first reply
+        reply = Reply(body=body, origin=thread)
+        reply.save()
         # Add attachments
         for attachment_id in attachments:
-            thread.attachments.add(attachment_id)
+            reply.attachments.add(attachment_id)
         return thread
 
 
@@ -113,13 +121,11 @@ def get_attachments(validated_data: dict[str, Any]) -> list[int]:
 
 class ThreadDetailedSerializer(serializers.ModelSerializer):
     replies = ReplySerializer(many=True, read_only=True)
-    attachments = AttachmentSerializer(many=True, read_only=True)
 
     class Meta:
         model = Thread
-        fields = ('id', 'body', 'created_at',
-                  'board', 'replies', 'attachments')
-
+        fields = ('id', 'board', 'replies')
+    
 
 class BoardSerializer(serializers.ModelSerializer):
     class Meta:

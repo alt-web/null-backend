@@ -9,7 +9,7 @@ class BoardTestCase(TestCase):
         self.b1 = Board(code='b', name='random', description='desc')
         self.b1.save()
         # Threads
-        self.t1 = Thread(body='test thread', board=self.b1)
+        self.t1 = Thread(board=self.b1)
         self.t1.save()
         # Client
         self.c = Client()
