@@ -2,6 +2,7 @@ import requests
 import magic
 import json
 from typing import Any
+from django.db.models import Max
 from rest_framework import serializers
 from messaging.models import Board, Thread, Reply, Attachment
 from .utils import get_ipfs_url
@@ -127,7 +128,14 @@ class BoardSerializer(serializers.ModelSerializer):
 
 
 class BoardDetailedSerializer(serializers.ModelSerializer):
-    threads = ThreadSerializer(many=True, read_only=True)
+    threads = serializers.SerializerMethodField()
+
+    def get_threads(self, instance):
+        """ Sort threads by the date of last reply """
+        threads = Thread.objects.filter(board=instance)
+        threads_with_dates = threads.annotate(last_reply_date=Max('replies__created_at'))
+        ordered_threads = threads_with_dates.order_by('-last_reply_date')
+        return ThreadSerializer(ordered_threads, many=True).data
 
     class Meta:
         model = Board
