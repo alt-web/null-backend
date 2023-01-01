@@ -83,6 +83,7 @@ class ThreadSerializer(serializers.ModelSerializer):
     aid4 = serializers.IntegerField(write_only=True, required=False)
 
     first_reply = serializers.SerializerMethodField()
+    last_replies = serializers.SerializerMethodField()
 
     def get_first_reply(self, instance):
         """
@@ -91,9 +92,18 @@ class ThreadSerializer(serializers.ModelSerializer):
         reply = instance.replies.earliest('id')
         return ReplySerializer(reply).data
 
+    def get_last_replies(self, instance):
+        """
+        Returns only the last 3 replies
+        """
+        replies = list(instance.replies.all()[1:])
+        last_replies = replies[-3:]
+        
+        return ReplySerializer(last_replies, many=True).data
+
     class Meta:
         model = Thread
-        fields = ('id', 'body', 'first_reply', 'board',
+        fields = ('id', 'body', 'first_reply', 'last_replies', 'board',
                   'aid1', 'aid2', 'aid3', 'aid4')
 
     def create(self, validated_data: dict[str, Any]) -> Thread:
