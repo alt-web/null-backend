@@ -74,19 +74,27 @@ class ReplySerializer(serializers.ModelSerializer):
 
 
 class ThreadSerializer(serializers.ModelSerializer):
-    # Attachment ids
+    # Body of the first reply
     body = serializers.CharField(write_only=True, required=True)
+    # Attachment ids
     aid1 = serializers.IntegerField(write_only=True, required=False)
     aid2 = serializers.IntegerField(write_only=True, required=False)
     aid3 = serializers.IntegerField(write_only=True, required=False)
     aid4 = serializers.IntegerField(write_only=True, required=False)
 
-    attachments = AttachmentSerializer(many=True, read_only=True)
+    first_reply = serializers.SerializerMethodField()
+
+    def get_first_reply(self, instance):
+        """
+        Returns the first reply
+        """
+        reply = instance.replies.earliest('id')
+        return ReplySerializer(reply).data
 
     class Meta:
         model = Thread
-        fields = ('id', 'body', 'board',
-                  'aid1', 'aid2', 'aid3', 'aid4', 'attachments')
+        fields = ('id', 'body', 'first_reply', 'board',
+                  'aid1', 'aid2', 'aid3', 'aid4')
 
     def create(self, validated_data: dict[str, Any]) -> Thread:
         """

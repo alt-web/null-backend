@@ -1,5 +1,5 @@
 from django.test import TestCase, Client
-from messaging.models import Board, Thread
+from messaging.models import Board, Thread, Reply
 import json
 
 
@@ -11,6 +11,9 @@ class BoardTestCase(TestCase):
         # Threads
         self.t1 = Thread(board=self.b1)
         self.t1.save()
+        # Reply
+        self.r1 = Reply(body='Test reply', origin=self.t1)
+        self.r1.save()
         # Client
         self.c = Client()
 
