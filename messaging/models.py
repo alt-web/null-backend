@@ -50,4 +50,10 @@ class Reply(models.Model):
             related_name='replies',
             on_delete=models.CASCADE
     )
+    target = models.ForeignKey(
+            'self',
+            related_name='replies',
+            on_delete=models.SET_NULL,
+            default=None, null=True, blank=True,
+    )
     attachments = models.ManyToManyField(Attachment)

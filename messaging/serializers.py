@@ -58,7 +58,7 @@ class ReplySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Reply
-        fields = ('id', 'body', 'created_at', 'origin', 'attachments',
+        fields = ('id', 'body', 'created_at', 'origin', 'target', 'attachments',
                   'aid1', 'aid2', 'aid3', 'aid4')
 
     def create(self, validated_data: dict[str, Any]) -> Reply:
