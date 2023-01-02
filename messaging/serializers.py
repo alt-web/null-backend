@@ -1,6 +1,8 @@
 import requests
 import magic
 import json
+from typing import Any
+from django.db.models import Max
 from rest_framework import serializers
 from messaging.models import Board, Thread, Reply, Attachment
 from .utils import get_ipfs_url
@@ -16,7 +18,7 @@ class AttachmentSerializer(serializers.ModelSerializer):
         read_only_fields = ['cid', 'name', 'mimetype', 'size',
                             'width', 'height', 'length']
 
-    def create(self, validated_data):
+    def create(self, validated_data: dict[str, Any]) -> Attachment:
         # Upload file to ipfs
         file = validated_data.pop('file')
         res = requests.post(
@@ -56,10 +58,10 @@ class ReplySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Reply
-        fields = ('id', 'body', 'created_at', 'origin', 'attachments',
+        fields = ('id', 'body', 'created_at', 'origin', 'target', 'attachments',
                   'aid1', 'aid2', 'aid3', 'aid4')
 
-    def create(self, validated_data):
+    def create(self, validated_data: dict[str, Any]) -> Reply:
         # Save attachment ids
         attachments = get_attachments(validated_data)
         # Create a reply
@@ -72,32 +74,58 @@ class ReplySerializer(serializers.ModelSerializer):
 
 
 class ThreadSerializer(serializers.ModelSerializer):
+    # Body of the first reply
+    body = serializers.CharField(write_only=True, required=True)
     # Attachment ids
     aid1 = serializers.IntegerField(write_only=True, required=False)
     aid2 = serializers.IntegerField(write_only=True, required=False)
     aid3 = serializers.IntegerField(write_only=True, required=False)
     aid4 = serializers.IntegerField(write_only=True, required=False)
 
-    attachments = AttachmentSerializer(many=True, read_only=True)
+    first_reply = serializers.SerializerMethodField()
+    last_replies = serializers.SerializerMethodField()
+
+    def get_first_reply(self, instance):
+        """
+        Returns the first reply
+        """
+        reply = instance.replies.earliest('id')
+        return ReplySerializer(reply).data
+
+    def get_last_replies(self, instance):
+        """
+        Returns only the last 3 replies
+        """
+        replies = list(instance.replies.all()[1:])
+        last_replies = replies[-3:]
+        
+        return ReplySerializer(last_replies, many=True).data
 
     class Meta:
         model = Thread
-        fields = ('id', 'body', 'created_at', 'board',
-                  'aid1', 'aid2', 'aid3', 'aid4', 'attachments')
+        fields = ('id', 'body', 'first_reply', 'last_replies', 'board',
+                  'aid1', 'aid2', 'aid3', 'aid4')
 
-    def create(self, validated_data):
-        # Save attachments
+    def create(self, validated_data: dict[str, Any]) -> Thread:
+        """
+        Extract everything that belongs to the reply model,
+        create the tread and thren create the first reply.
+        """
+        body = validated_data.pop('body')
         attachments = get_attachments(validated_data)
         # Create a thread
         thread = Thread(**validated_data)
         thread.save()
+        # Create the first reply
+        reply = Reply(body=body, origin=thread)
+        reply.save()
         # Add attachments
         for attachment_id in attachments:
-            thread.attachments.add(attachment_id)
+            reply.attachments.add(attachment_id)
         return thread
 
 
-def get_attachments(validated_data):
+def get_attachments(validated_data: dict[str, Any]) -> list[int]:
     attachment_ids = []
     for i in range(1, 5):
         key = f'aid{i}'
@@ -111,13 +139,11 @@ def get_attachments(validated_data):
 
 class ThreadDetailedSerializer(serializers.ModelSerializer):
     replies = ReplySerializer(many=True, read_only=True)
-    attachments = AttachmentSerializer(many=True, read_only=True)
 
     class Meta:
         model = Thread
-        fields = ('id', 'body', 'created_at',
-                  'board', 'replies', 'attachments')
-
+        fields = ('id', 'board', 'replies')
+    
 
 class BoardSerializer(serializers.ModelSerializer):
     class Meta:
@@ -126,7 +152,14 @@ class BoardSerializer(serializers.ModelSerializer):
 
 
 class BoardDetailedSerializer(serializers.ModelSerializer):
-    threads = ThreadSerializer(many=True, read_only=True)
+    threads = serializers.SerializerMethodField()
+
+    def get_threads(self, instance):
+        """ Sort threads by the date of last reply """
+        threads = Thread.objects.filter(board=instance)
+        threads_with_dates = threads.annotate(last_reply_date=Max('replies__created_at'))
+        ordered_threads = threads_with_dates.order_by('-last_reply_date')
+        return ThreadSerializer(ordered_threads, many=True).data
 
     class Meta:
         model = Board

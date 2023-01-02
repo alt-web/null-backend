@@ -34,19 +34,7 @@ class Attachment(models.Model):
         return self.name
 
 
-class Post(models.Model):
-    """
-    Base class for threads and replies
-    """
-    body = models.CharField(max_length=1024)
-    attachments = models.ManyToManyField(Attachment)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return self.body[:20]
-
-
-class Thread(Post):
+class Thread(models.Model):
     board = models.ForeignKey(
             Board,
             related_name='threads',
@@ -54,9 +42,18 @@ class Thread(Post):
     )
 
 
-class Reply(Post):
+class Reply(models.Model):
+    body = models.CharField(max_length=1024)
+    created_at = models.DateTimeField(auto_now_add=True)
     origin = models.ForeignKey(
             Thread,
             related_name='replies',
             on_delete=models.CASCADE
     )
+    target = models.ForeignKey(
+            'self',
+            related_name='replies',
+            on_delete=models.SET_NULL,
+            default=None, null=True, blank=True,
+    )
+    attachments = models.ManyToManyField(Attachment)
