@@ -30,6 +30,14 @@ class Attachment(models.Model):
     # Optional length in seconds (video/audio only)
     length = models.PositiveIntegerField(null=True, blank=True, default=None)
 
+    # Optional preview for video or audio files.
+    # Under the hood it's just another attachment.
+    preview = models.ForeignKey(
+            'self',
+            on_delete=models.SET_NULL,
+            default=None, null=True, blank=True,
+    )
+
     def __str__(self):
         return self.name
 

@@ -4,19 +4,35 @@ import json
 from typing import Any
 from django.db.models import Max
 from rest_framework import serializers
+from mutagen.id3 import ID3
 from messaging.models import Board, Thread, Reply, Attachment
-from .utils import get_ipfs_url
+from messaging.utils import (
+        get_ipfs_url,
+        is_audio_file,
+        get_audio_preview
+)
+
+
+class PreviewSerializer(serializers.ModelSerializer):
+    """
+    Simple read-only version of attachment serializer
+    """
+
+    class Meta:
+        model = Attachment
+        fields = ('id', 'cid')
 
 
 class AttachmentSerializer(serializers.ModelSerializer):
     file = serializers.FileField(write_only=True)
+    preview = PreviewSerializer(read_only=True)
 
     class Meta:
         model = Attachment
         fields = ('id', 'file', 'cid', 'name', 'mimetype', 'size',
-                  'width', 'height', 'length')
+                  'width', 'height', 'length', 'preview')
         read_only_fields = ['cid', 'name', 'mimetype', 'size',
-                            'width', 'height', 'length']
+                            'width', 'height', 'length', 'preview']
 
     def create(self, validated_data: dict[str, Any]) -> Attachment:
         # Upload file to ipfs
@@ -38,6 +54,11 @@ class AttachmentSerializer(serializers.ModelSerializer):
         file.seek(0)
         mime_type = magic.from_buffer(file.read(2048), mime=True)
         validated_data['mimetype'] = mime_type
+
+        # Try to extract cover image from audio files
+        if is_audio_file(mime_type):
+            file.seek(0)
+            validated_data['preview'] = get_audio_preview(file)
 
         instance = Attachment(**validated_data)
         instance.save()
