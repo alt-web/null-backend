@@ -4,10 +4,10 @@ import io
 import urllib.parse
 import requests
 import json
-from typing import Union, BinaryIO
+from typing import Union, Tuple, BinaryIO
 from PIL import Image
 from mutagen.id3 import ID3
-from messaging.models import Attachment
+from messaging.models import Preview
 
 
 def get_ipfs_url(path: str) -> str:
@@ -32,9 +32,10 @@ def is_audio_file(mime_type: str) -> bool:
     return False
 
 
-def compress_image(image_data: BinaryIO) -> io.BytesIO:
+def compress_image(image_data: BinaryIO) -> Tuple[io.BytesIO, int, int]:
     """
-    Resizes an image and saves it in a webp format
+    Resizes an image and saves it in a webp format.
+    Returns image buffer, width and height.
     """
     buffer = io.BytesIO()
 
@@ -53,10 +54,10 @@ def compress_image(image_data: BinaryIO) -> io.BytesIO:
         # Save image
         final_img.save(buffer, format="WebP")
 
-    return buffer
+    return (buffer, width, height)
 
 
-def get_audio_preview(file: BinaryIO) -> Union[Attachment, None]:
+def get_audio_preview(file: BinaryIO) -> Union[Preview, None]:
     """
     Tries to extract the cover from audio file.
     Returns None if any exception was raised.
@@ -67,7 +68,7 @@ def get_audio_preview(file: BinaryIO) -> Union[Attachment, None]:
         image_buffer = io.BytesIO(image_data)
 
         # Convert to webp
-        image_data = compress_image(image_buffer)
+        image_data, width, height = compress_image(image_buffer)
         image_data.seek(0)
 
         # Upload to ipfs
@@ -78,7 +79,12 @@ def get_audio_preview(file: BinaryIO) -> Union[Attachment, None]:
         content = json.loads(res.content)
 
         # Save attachment
-        record = Attachment(cid=content['Hash'], name='cover.webp', size=image_data.getbuffer().nbytes, mimetype='image/webp')
+        record = Preview(
+                cid=content['Hash'],
+                mimetype='image/webp',
+                width=width,
+                height=height,
+        )
         record.save()
         return record
 

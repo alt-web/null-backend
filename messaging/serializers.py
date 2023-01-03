@@ -5,22 +5,28 @@ from typing import Any
 from django.db.models import Max
 from rest_framework import serializers
 from mutagen.id3 import ID3
-from messaging.models import Board, Thread, Reply, Attachment
+from messaging.models import (
+        Board,
+        Thread,
+        Reply,
+        Attachment,
+        Preview,
+)
 from messaging.utils import (
         get_ipfs_url,
         is_audio_file,
-        get_audio_preview
+        get_audio_preview,
 )
 
 
 class PreviewSerializer(serializers.ModelSerializer):
     """
-    Simple read-only version of attachment serializer
+    Simple version of attachment serializer
     """
 
     class Meta:
-        model = Attachment
-        fields = ('id', 'cid')
+        model = Preview
+        fields = ('id', 'cid', 'width', 'height', 'mimetype')
 
 
 class AttachmentSerializer(serializers.ModelSerializer):
