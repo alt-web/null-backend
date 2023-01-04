@@ -8,6 +8,7 @@ import uuid
 import subprocess
 from typing import Union, Tuple, BinaryIO, Any
 from PIL import Image
+import mutagen
 from mutagen.id3 import ID3
 from messaging.models import Preview
 
@@ -100,6 +101,16 @@ def get_audio_preview(file: BinaryIO) -> Union[Preview, None]:
         record.save()
         return record
 
+    except:
+        return None
+
+
+def get_audio_duration(file: BinaryIO) -> Union[float, None]:
+    """
+    Returns audio duration or None if any exception was raised
+    """
+    try:
+        return mutagen.File(file).info.length
     except:
         return None
 

@@ -4,7 +4,6 @@ import json
 from typing import Any
 from django.db.models import Max
 from rest_framework import serializers
-from mutagen.id3 import ID3
 from messaging.models import (
         Board,
         Thread,
@@ -17,6 +16,7 @@ from messaging.utils import (
         is_audio_file,
         is_video_file,
         get_audio_preview,
+        get_audio_duration,
         get_video_preview,
         get_video_info,
 )
@@ -68,6 +68,8 @@ class AttachmentSerializer(serializers.ModelSerializer):
         if is_audio_file(mime_type):
             file.seek(0)
             validated_data['preview'] = get_audio_preview(file)
+            file.seek(0)
+            validated_data['duration'] = get_audio_duration(file)
 
         # Extract single frame from video
         elif is_video_file(mime_type):
