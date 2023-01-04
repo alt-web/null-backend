@@ -4,6 +4,8 @@ import io
 import urllib.parse
 import requests
 import json
+import uuid
+import subprocess
 from typing import Union, Tuple, BinaryIO
 from PIL import Image
 from mutagen.id3 import ID3
@@ -27,6 +29,16 @@ def is_audio_file(mime_type: str) -> bool:
 
     # MP3 files sometimes recognised as octet-stream
     if mime_type == 'application/octet-stream':
+        return True
+
+    return False
+
+
+def is_video_file(mime_type: str) -> bool:
+    """
+    Check the mime type and tells if the file is video or not
+    """
+    if mime_type.startswith('video'):
         return True
 
     return False
@@ -86,6 +98,53 @@ def get_audio_preview(file: BinaryIO) -> Union[Preview, None]:
                 height=height,
         )
         record.save()
+        return record
+
+    except:
+        return None
+
+
+def get_image_size(file_path: str) -> Tuple[int, int]:
+    """
+    Returns width and height of the image
+    """
+    with Image.open(file_path) as img:
+        return img.size
+
+
+def get_video_preview(file_path: str) -> Union[Preview, None]:
+    try:
+        # Generate preview with ffmpeg
+        preview_path = f'/tmp/{uuid.uuid4()}.webp'
+        cmd = ['ffmpeg', '-i', file_path,
+               '-vf', 'thumbnail,scale=200:200:force_original_aspect_ratio=decrease',
+               '-frames:v', '1',
+               preview_path
+        ]
+        subprocess.run(cmd, check=True)
+
+        # Upload preview to ipfs
+        with open(preview_path, 'rb') as image:
+            res = requests.post(
+                    get_ipfs_url('/api/v0/add?cid-version=1'),
+                    files={'django': image}
+            )
+        content = json.loads(res.content)
+
+        width, height = get_image_size(preview_path)
+
+        # Save attachment
+        record = Preview(
+                cid=content['Hash'],
+                mimetype='image/webp',
+                width=width,
+                height=height,
+        )
+        record.save()
+
+        # Delete preview from local storage
+        os.remove(preview_path)
+
         return record
 
     except:

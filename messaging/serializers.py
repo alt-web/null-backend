@@ -15,7 +15,9 @@ from messaging.models import (
 from messaging.utils import (
         get_ipfs_url,
         is_audio_file,
+        is_video_file,
         get_audio_preview,
+        get_video_preview,
 )
 
 
@@ -65,6 +67,11 @@ class AttachmentSerializer(serializers.ModelSerializer):
         if is_audio_file(mime_type):
             file.seek(0)
             validated_data['preview'] = get_audio_preview(file)
+
+        # Extract single frame from video
+        elif is_video_file(mime_type):
+            file_path = file.temporary_file_path()
+            validated_data['preview'] = get_video_preview(file_path)
 
         instance = Attachment(**validated_data)
         instance.save()
