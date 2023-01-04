@@ -6,7 +6,7 @@ import requests
 import json
 import uuid
 import subprocess
-from typing import Union, Tuple, BinaryIO
+from typing import Union, Tuple, BinaryIO, Any
 from PIL import Image
 from mutagen.id3 import ID3
 from messaging.models import Preview
@@ -149,3 +149,46 @@ def get_video_preview(file_path: str) -> Union[Preview, None]:
 
     except:
         return None
+
+
+class VideoInfo:
+    def __init__(self, duration: Union[float, None], width: Union[int, None], height: Union[int, None]):
+        self.duration = duration
+        self.width = width
+        self.height = height
+
+
+def get_video_info(video_path: str) -> VideoInfo:
+    """
+    Runs ffprobe and 
+    """
+
+    def get_video_stream(streams: dict[str, Any]) -> dict[str, Any]:
+        """
+        Selects a video stream from all streams
+        """
+        for stream in streams:
+            if stream['codec_type'] == 'video':
+                return stream
+
+    try:
+        # Run ffprobe
+        cmd = ['ffprobe', video_path,
+               '-v', 'quiet',
+               '-print_format', 'json',
+               '-show_format', '-show_streams'
+        ]
+        result = subprocess.run(cmd, capture_output=True, text=True)
+
+        # Parse result
+        info = json.loads(result.stdout)
+        video_stream = get_video_stream(info['streams'])
+
+        # Save info
+        duration = info['format']['duration']
+        width = video_stream['width']
+        height = video_stream['height']
+        return VideoInfo(duration, width, height)
+
+    except:
+        return VideoInfo(None, None, None)

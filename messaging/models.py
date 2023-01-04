@@ -46,7 +46,7 @@ class Attachment(models.Model):
     height = models.PositiveIntegerField(null=True, blank=True, default=None)
 
     # Optional length in seconds (video/audio only)
-    length = models.PositiveIntegerField(null=True, blank=True, default=None)
+    duration = models.FloatField(null=True, blank=True, default=None)
 
     # Optional preview for video or audio files.
     # Under the hood it's just another attachment.

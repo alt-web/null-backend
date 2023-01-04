@@ -18,6 +18,7 @@ from messaging.utils import (
         is_video_file,
         get_audio_preview,
         get_video_preview,
+        get_video_info,
 )
 
 
@@ -38,9 +39,9 @@ class AttachmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Attachment
         fields = ('id', 'file', 'cid', 'name', 'mimetype', 'size',
-                  'width', 'height', 'length', 'preview')
+                  'width', 'height', 'duration', 'preview')
         read_only_fields = ['cid', 'name', 'mimetype', 'size',
-                            'width', 'height', 'length', 'preview']
+                            'width', 'height', 'duration', 'preview']
 
     def create(self, validated_data: dict[str, Any]) -> Attachment:
         # Upload file to ipfs
@@ -72,6 +73,10 @@ class AttachmentSerializer(serializers.ModelSerializer):
         elif is_video_file(mime_type):
             file_path = file.temporary_file_path()
             validated_data['preview'] = get_video_preview(file_path)
+            video_info = get_video_info(file_path)
+            validated_data['duration'] = video_info.duration
+            validated_data['width'] = video_info.width
+            validated_data['height'] = video_info.height
 
         instance = Attachment(**validated_data)
         instance.save()
