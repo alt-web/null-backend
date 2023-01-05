@@ -114,18 +114,28 @@ class ReplySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Reply
-        fields = ('id', 'body', 'created_at', 'origin', 'target', 'attachments',
+        fields = ('id', 'body', 'created_at', 'origin', 'targets', 'attachments',
                   'aid1', 'aid2', 'aid3', 'aid4')
+        extra_kwargs = {
+            'targets': {
+                'allow_empty': True
+            }
+        }
 
     def create(self, validated_data: dict[str, Any]) -> Reply:
         # Save attachment ids
         attachments = get_attachments(validated_data)
+        # Save targets
+        targets = validated_data.pop('targets', [])
         # Create a reply
         reply = Reply(**validated_data)
         reply.save()
         # Add attachments
         for attachment_id in attachments:
             reply.attachments.add(attachment_id)
+        # Add targets
+        for target_id in targets:
+            reply.targets.add(target_id)
         return reply
 
 
