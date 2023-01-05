@@ -37,12 +37,51 @@ def is_audio_file(mime_type: str) -> bool:
 
 def is_video_file(mime_type: str) -> bool:
     """
-    Check the mime type and tells if the file is video or not
+    Checks the mime type and tells if the file is video or not
     """
     if mime_type.startswith('video'):
         return True
 
     return False
+
+
+def is_image_file(mime_type: str) -> bool:
+    """
+    Checks the mime type and tells if the file is image or not
+    """
+    if mime_type.startswith('image'):
+        return True
+
+    return False
+
+
+def get_image_preview(file: BinaryIO) -> Union[Preview, None]:
+    """
+    Returns smaller version of the image or None if any exception was raised
+    """
+    try:
+        image, width, height = compress_image(file)
+
+        # Upload to ipfs
+        image.seek(0)
+        res = requests.post(
+                get_ipfs_url('/api/v0/add?cid-version=1'),
+                files={'django': image}
+        )
+        content = json.loads(res.content)
+
+        # Save preview
+        record = Preview(
+                cid=content['Hash'],
+                mimetype='image/webp',
+                width=width,
+                height=height,
+        )
+        record.save()
+        return record
+
+    except:
+        return None
 
 
 def compress_image(image_data: BinaryIO) -> Tuple[io.BytesIO, int, int]:
@@ -117,10 +156,14 @@ def get_audio_duration(file: BinaryIO) -> Union[float, None]:
 
 def get_image_size(file_path: str) -> Tuple[int, int]:
     """
-    Returns width and height of the image
+    Returns width and height of the image.
+    If anything goes wrong, returns (0, 0)
     """
-    with Image.open(file_path) as img:
-        return img.size
+    try:
+        with Image.open(file_path) as img:
+            return img.size
+    except:
+        return (0, 0)
 
 
 def get_video_preview(file_path: str) -> Union[Preview, None]:

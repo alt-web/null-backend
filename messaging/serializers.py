@@ -15,10 +15,13 @@ from messaging.utils import (
         get_ipfs_url,
         is_audio_file,
         is_video_file,
+        is_image_file,
         get_audio_preview,
         get_audio_duration,
         get_video_preview,
         get_video_info,
+        get_image_preview,
+        get_image_size,
 )
 
 
@@ -71,7 +74,8 @@ class AttachmentSerializer(serializers.ModelSerializer):
             file.seek(0)
             validated_data['duration'] = get_audio_duration(file)
 
-        # Extract single frame from video
+        # Extract single frame from video,
+        # save width, height and duration
         elif is_video_file(mime_type):
             file_path = file.temporary_file_path()
             validated_data['preview'] = get_video_preview(file_path)
@@ -79,6 +83,17 @@ class AttachmentSerializer(serializers.ModelSerializer):
             validated_data['duration'] = video_info.duration
             validated_data['width'] = video_info.width
             validated_data['height'] = video_info.height
+
+        # Generate image preview, get width and height
+        elif is_image_file(mime_type):
+            # Preview
+            file.seek(0)
+            validated_data['preview'] = get_image_preview(file)
+            # Width and height
+            file_path = file.temporary_file_path()
+            width, height = get_image_size(file_path)
+            validated_data['width'] = width
+            validated_data['height'] = height
 
         instance = Attachment(**validated_data)
         instance.save()
