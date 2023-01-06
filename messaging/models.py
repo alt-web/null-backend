@@ -76,5 +76,5 @@ class Reply(models.Model):
             related_name='replies',
             on_delete=models.CASCADE
     )
-    targets = models.ManyToManyField('self')
+    connections = models.ManyToManyField('self')
     attachments = models.ManyToManyField(Attachment)

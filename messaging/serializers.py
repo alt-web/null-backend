@@ -114,10 +114,10 @@ class ReplySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Reply
-        fields = ('id', 'body', 'created_at', 'origin', 'targets', 'attachments',
+        fields = ('id', 'body', 'created_at', 'origin', 'connections', 'attachments',
                   'aid1', 'aid2', 'aid3', 'aid4')
         extra_kwargs = {
-            'targets': {
+            'connections': {
                 'allow_empty': True
             }
         }
@@ -126,7 +126,7 @@ class ReplySerializer(serializers.ModelSerializer):
         # Save attachment ids
         attachments = get_attachments(validated_data)
         # Save targets
-        targets = validated_data.pop('targets', [])
+        targets = validated_data.pop('connections', [])
         # Create a reply
         reply = Reply(**validated_data)
         reply.save()
@@ -135,7 +135,7 @@ class ReplySerializer(serializers.ModelSerializer):
             reply.attachments.add(attachment_id)
         # Add targets
         for target_id in targets:
-            reply.targets.add(target_id)
+            reply.connections.add(target_id)
         return reply
 
 
