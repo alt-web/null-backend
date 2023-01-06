@@ -181,3 +181,10 @@ CSRF_TRUSTED_ORIGINS = [
     "http://127.0.0.1:3000",
     "https://api.0ch.space"
 ]
+
+# Disable MemoryFileUploadHandler to make it easier
+# for third-party programs to generate previews
+# because they can't work with files in memory.
+FILE_UPLOAD_HANDLERS = [
+    'django.core.files.uploadhandler.TemporaryFileUploadHandler',
+]

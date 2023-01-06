@@ -10,6 +10,24 @@ class Board(models.Model):
         return f'/{self.code}/ - {self.name}'
 
 
+class Preview(models.Model):
+    """
+    The model is a simplified version of the attachment.
+    - For an audio this is the album cover.
+    - For a video it is a frame from the video.
+    - For a picture it is a smaller version of the picture.
+    """
+    # Ipfs CID
+    cid = models.CharField(max_length=59)
+
+    # Mime type
+    mimetype = models.CharField(max_length=36)
+
+    # Width and height
+    width = models.PositiveIntegerField()
+    height = models.PositiveIntegerField()
+
+
 class Attachment(models.Model):
     # Ipfs CID
     cid = models.CharField(max_length=59)
@@ -28,7 +46,15 @@ class Attachment(models.Model):
     height = models.PositiveIntegerField(null=True, blank=True, default=None)
 
     # Optional length in seconds (video/audio only)
-    length = models.PositiveIntegerField(null=True, blank=True, default=None)
+    duration = models.FloatField(null=True, blank=True, default=None)
+
+    # Optional preview for video or audio files.
+    # Under the hood it's just another attachment.
+    preview = models.ForeignKey(
+            Preview,
+            on_delete=models.SET_NULL,
+            default=None, null=True, blank=True,
+    )
 
     def __str__(self):
         return self.name
@@ -50,10 +76,5 @@ class Reply(models.Model):
             related_name='replies',
             on_delete=models.CASCADE
     )
-    target = models.ForeignKey(
-            'self',
-            related_name='replies',
-            on_delete=models.SET_NULL,
-            default=None, null=True, blank=True,
-    )
+    connections = models.ManyToManyField('self')
     attachments = models.ManyToManyField(Attachment)

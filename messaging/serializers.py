@@ -4,19 +4,47 @@ import json
 from typing import Any
 from django.db.models import Max
 from rest_framework import serializers
-from messaging.models import Board, Thread, Reply, Attachment
-from .utils import get_ipfs_url
+from messaging.models import (
+        Board,
+        Thread,
+        Reply,
+        Attachment,
+        Preview,
+)
+from messaging.utils import (
+        get_ipfs_url,
+        is_audio_file,
+        is_video_file,
+        is_image_file,
+        get_audio_preview,
+        get_audio_duration,
+        get_video_preview,
+        get_video_info,
+        get_image_preview,
+        get_image_size,
+)
+
+
+class PreviewSerializer(serializers.ModelSerializer):
+    """
+    Simple version of attachment serializer
+    """
+
+    class Meta:
+        model = Preview
+        fields = ('id', 'cid', 'width', 'height', 'mimetype')
 
 
 class AttachmentSerializer(serializers.ModelSerializer):
     file = serializers.FileField(write_only=True)
+    preview = PreviewSerializer(read_only=True)
 
     class Meta:
         model = Attachment
         fields = ('id', 'file', 'cid', 'name', 'mimetype', 'size',
-                  'width', 'height', 'length')
+                  'width', 'height', 'duration', 'preview')
         read_only_fields = ['cid', 'name', 'mimetype', 'size',
-                            'width', 'height', 'length']
+                            'width', 'height', 'duration', 'preview']
 
     def create(self, validated_data: dict[str, Any]) -> Attachment:
         # Upload file to ipfs
@@ -39,6 +67,34 @@ class AttachmentSerializer(serializers.ModelSerializer):
         mime_type = magic.from_buffer(file.read(2048), mime=True)
         validated_data['mimetype'] = mime_type
 
+        # Try to extract cover image from audio files
+        if is_audio_file(mime_type):
+            file.seek(0)
+            validated_data['preview'] = get_audio_preview(file)
+            file.seek(0)
+            validated_data['duration'] = get_audio_duration(file)
+
+        # Extract single frame from video,
+        # save width, height and duration
+        elif is_video_file(mime_type):
+            file_path = file.temporary_file_path()
+            validated_data['preview'] = get_video_preview(file_path)
+            video_info = get_video_info(file_path)
+            validated_data['duration'] = video_info.duration
+            validated_data['width'] = video_info.width
+            validated_data['height'] = video_info.height
+
+        # Generate image preview, get width and height
+        elif is_image_file(mime_type):
+            # Preview
+            file.seek(0)
+            validated_data['preview'] = get_image_preview(file)
+            # Width and height
+            file_path = file.temporary_file_path()
+            width, height = get_image_size(file_path)
+            validated_data['width'] = width
+            validated_data['height'] = height
+
         instance = Attachment(**validated_data)
         instance.save()
         return instance
@@ -58,18 +114,28 @@ class ReplySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Reply
-        fields = ('id', 'body', 'created_at', 'origin', 'target', 'attachments',
+        fields = ('id', 'body', 'created_at', 'origin', 'connections', 'attachments',
                   'aid1', 'aid2', 'aid3', 'aid4')
+        extra_kwargs = {
+            'connections': {
+                'allow_empty': True
+            }
+        }
 
     def create(self, validated_data: dict[str, Any]) -> Reply:
         # Save attachment ids
         attachments = get_attachments(validated_data)
+        # Save targets
+        targets = validated_data.pop('connections', [])
         # Create a reply
         reply = Reply(**validated_data)
         reply.save()
         # Add attachments
         for attachment_id in attachments:
             reply.attachments.add(attachment_id)
+        # Add targets
+        for target_id in targets:
+            reply.connections.add(target_id)
         return reply
 
 
